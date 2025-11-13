@@ -1,0 +1,510 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card" style="margin-bottom: 30px; text-align: center;">
+    <h3>🚀 Dynamic AI-Powered Recommendation Engine</h3>
+    <p style="margin-bottom: 15px; opacity: 0.8;">Search for anything and watch recommendations adapt in real-time!</p>
+    <div style="background: rgba(76,175,80,0.1); padding: 10px; border-radius: 8px; margin: 15px 0; border: 1px solid rgba(76,175,80,0.3);">
+        <strong>🔗 Real Source Verification:</strong> All recommendations include actual URLs from verified sources like Python.org, IMDb, Amazon, Coursera, Mayo Clinic, and more!
+    </div>
+    <button onclick="loadSampleData()" class="btn" style="margin-right: 15px;">Load Sample Data</button>
+    <button onclick="loadStatus()" class="btn">Refresh Status</button>
+</div>
+
+<div class="card" style="margin-bottom: 30px;">
+    <h3>🔍 Dynamic AI Search</h3>
+    <p style="margin-bottom: 15px; opacity: 0.8;">Search for anything and watch both recommendation sections adapt in real-time!</p>
+    <div class="form-group">
+        <div style="position: relative;">
+            <input type="text" id="dynamicSearch" placeholder="Search for anything... (e.g., python programming, best movies, fitness tips)" 
+                   style="width: calc(100% - 10px); padding-right: 50px;" 
+                   oninput="handleSearchInput()" 
+                   onkeypress="handleSearchKeypress(event)">
+            <button onclick="performDynamicSearch()" class="btn" style="position: absolute; right: 15px; top: 8px; padding: 6px 12px; margin: 0;">🔍</button>
+        </div>
+        <div id="searchSuggestions" style="background: rgba(0,0,0,0.8); border: 1px solid rgba(42,82,152,0.3); border-radius: 8px; margin-top: 5px; max-height: 200px; overflow-y: auto; display: none;"></div>
+    </div>
+    <div id="searchMessage"></div>
+    <div style="text-align: center; margin-top: 15px; opacity: 0.7; font-size: 0.9rem;">
+        🎯 Try: "machine learning", "best netflix shows", "healthy recipes", "travel destinations"
+    </div>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h3>👤 User Management</h3>
+        <form id="userForm">
+            <div class="form-group">
+                <input type="text" id="userId" placeholder="Enter unique user ID" required>
+            </div>
+            <button type="submit" class="btn">Create User Profile</button>
+        </form>
+        <div id="userMessage"></div>
+    </div>
+    
+    <div class="card">
+        <h3>📦 Content Library</h3>
+        <form id="itemForm">
+            <div class="form-group">
+                <div class="form-row">
+                    <input type="text" id="itemId" placeholder="Item ID" required style="flex: 1;">
+                    <input type="text" id="title" placeholder="Title" required style="flex: 2;">
+                </div>
+                <div class="form-row">
+                    <select id="category" required style="flex: 1;">
+                        <option value="">Select Category</option>
+                        <option value="technology">Technology</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="education">Education</option>
+                        <option value="health">Health</option>
+                        <option value="travel">Travel</option>
+                    </select>
+                </div>
+                <textarea id="description" placeholder="Detailed description" required style="min-height: 80px; resize: vertical; background: rgba(0,0,0,0.6); color: white; border: 1px solid rgba(42,82,152,0.5); padding: 12px 16px; border-radius: 8px; margin: 8px 5px; font-size: 0.95rem; transition: all 0.3s ease; backdrop-filter: blur(5px); width: calc(100% - 10px); font-family: inherit;"></textarea>
+            </div>
+            <button type="submit" class="btn">Add to Library</button>
+        </form>
+        <div id="itemMessage"></div>
+    </div>
+    
+    <div class="card">
+        <h3>📊 User Activity</h3>
+        <form id="interactionForm">
+            <div class="form-group">
+                <div class="form-row">
+                    <input type="text" id="intUserId" placeholder="User ID" required style="flex: 1;">
+                    <input type="text" id="intItemId" placeholder="Item ID" required style="flex: 1;">
+                </div>
+                <select id="interactionType" required>
+                    <option value="view">👁️ View</option>
+                    <option value="like">❤️ Like</option>
+                    <option value="purchase">🛒 Purchase</option>
+                    <option value="share">📤 Share</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Record Activity</button>
+        </form>
+        <div id="interactionMessage"></div>
+    </div>
+    
+    <div class="card">
+        <h3>🎯 AI-Powered Personalized Recommendations</h3>
+        <div id="currentSearchQuery" style="background: rgba(76,175,80,0.1); padding: 8px; border-radius: 6px; margin-bottom: 15px; display: none;">
+            <strong>🔍 Current Search:</strong> <span id="searchQueryText"></span>
+        </div>
+        <div class="form-group">
+            <div class="form-row">
+                <input type="text" id="recUserId" placeholder="Enter user ID (try: alice, bob, demo)" style="flex: 1;">
+                <select id="recLimit" style="flex: 0 0 100px;">
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="15">Top 15</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <button onclick="getRecommendations(false)" class="btn">📋 Standard Recommendations</button>
+                <button onclick="getRecommendations(true)" class="btn" style="background: linear-gradient(45deg, #4caf50, #66bb6a);">🧠 AI Search-Powered</button>
+            </div>
+        </div>
+        <div class="results-container" id="recommendations"></div>
+    </div>
+    
+    <div class="card">
+        <h3>🔥 Real-Time Trending Content</h3>
+        <div id="currentTrendingQuery" style="background: rgba(255,107,53,0.1); padding: 8px; border-radius: 6px; margin-bottom: 15px; display: none;">
+            <strong>🔍 Trending for:</strong> <span id="trendingQueryText"></span>
+        </div>
+        <div class="form-group">
+            <div class="form-row">
+                <select id="trendingHours" style="flex: 1;">
+                    <option value="1">Last Hour</option>
+                    <option value="6">Last 6 Hours</option>
+                    <option value="24" selected>Last 24 Hours</option>
+                    <option value="168">Last Week</option>
+                </select>
+                <select id="trendingLimit" style="flex: 0 0 100px;">
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="20">Top 20</option>
+                </select>
+            </div>
+            <button onclick="getTrending()" class="btn">🌐 Get Query-Based Trends</button>
+            <div style="text-align: center; margin-top: 10px; opacity: 0.7; font-size: 0.85rem;">
+                🔍 Trends will be based on your search query above
+            </div>
+        </div>
+        <div class="results-container" id="trending"></div>
+    </div>
+</div>
+
+<script>
+let currentSearchQuery = '';
+let searchTimeout;
+
+// Dynamic search functionality
+function handleSearchInput() {
+    const query = document.getElementById('dynamicSearch').value.trim();
+    
+    // Clear previous timeout
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    // Show suggestions after 300ms delay
+    if (query.length > 2) {
+        searchTimeout = setTimeout(() => {
+            showSearchSuggestions(query);
+        }, 300);
+    } else {
+        hideSearchSuggestions();
+    }
+}
+
+function handleSearchKeypress(event) {
+    if (event.key === 'Enter') {
+        performDynamicSearch();
+    }
+}
+
+async function showSearchSuggestions(query) {
+    const container = document.getElementById('searchSuggestions');
+    
+    try {
+        const response = await fetch(`/search-suggestions?q=${encodeURIComponent(query)}&limit=5`);
+        const suggestions = await response.json();
+        
+        if (suggestions.length > 0) {
+            container.innerHTML = suggestions.map(suggestion => 
+                `<div style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid rgba(42,82,152,0.2);" 
+                      onclick="selectSuggestion('${suggestion}')" 
+                      onmouseover="this.style.background='rgba(42,82,152,0.2)'" 
+                      onmouseout="this.style.background='transparent'">
+                    ${suggestion}
+                </div>`
+            ).join('');
+            container.style.display = 'block';
+        } else {
+            hideSearchSuggestions();
+        }
+    } catch (error) {
+        hideSearchSuggestions();
+    }
+}
+
+function hideSearchSuggestions() {
+    document.getElementById('searchSuggestions').style.display = 'none';
+}
+
+function selectSuggestion(suggestion) {
+    document.getElementById('dynamicSearch').value = suggestion;
+    hideSearchSuggestions();
+    performDynamicSearch();
+}
+
+function performDynamicSearch() {
+    const query = document.getElementById('dynamicSearch').value.trim();
+    
+    if (!query) {
+        showMessage('searchMessage', 'Please enter a search query', 'error');
+        return;
+    }
+    
+    currentSearchQuery = query;
+    hideSearchSuggestions();
+    
+    // Update UI to show current search
+    document.getElementById('currentSearchQuery').style.display = 'block';
+    document.getElementById('searchQueryText').textContent = query;
+    document.getElementById('currentTrendingQuery').style.display = 'block';
+    document.getElementById('trendingQueryText').textContent = query;
+    
+    // Auto-trigger both sections
+    getRecommendations(true);
+    getTrending();
+    
+    showMessage('searchMessage', `🎯 Search activated! Both sections now showing results for: "${query}"`, 'success');
+}
+
+// Enhanced form handlers
+document.getElementById('userForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Creating... <span class="loading"></span>';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/users', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({user_id: document.getElementById('userId').value})
+        });
+        
+        if (response.ok) {
+            showMessage('userMessage', '✅ User profile created successfully!', 'success');
+            document.getElementById('userId').value = '';
+        } else {
+            throw new Error('Failed to create user');
+        }
+    } catch (error) {
+        showMessage('userMessage', '❌ Error creating user profile', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+};
+
+document.getElementById('itemForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Adding... <span class="loading"></span>';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/items', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                item_id: document.getElementById('itemId').value,
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value
+            })
+        });
+        
+        if (response.ok) {
+            showMessage('itemMessage', '✅ Item added to library successfully!', 'success');
+            e.target.reset();
+        } else {
+            throw new Error('Failed to add item');
+        }
+    } catch (error) {
+        showMessage('itemMessage', '❌ Error adding item to library', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+};
+
+document.getElementById('interactionForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Recording... <span class="loading"></span>';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/interactions', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                user_id: document.getElementById('intUserId').value,
+                item_id: document.getElementById('intItemId').value,
+                interaction_type: document.getElementById('interactionType').value
+            })
+        });
+        
+        if (response.ok) {
+            showMessage('interactionMessage', '✅ User activity recorded successfully!', 'success');
+            e.target.reset();
+        } else {
+            throw new Error('Failed to record interaction');
+        }
+    } catch (error) {
+        showMessage('interactionMessage', '❌ Error recording user activity', 'error');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+};
+
+async function getRecommendations(useSearchHistory = false) {
+    const userId = document.getElementById('recUserId').value.trim();
+    const limit = document.getElementById('recLimit').value;
+    const container = document.getElementById('recommendations');
+    
+    if (!userId) {
+        container.innerHTML = '<div class="item" style="border-color: #f44336;">Please enter a user ID</div>';
+        return;
+    }
+    
+    const analysisText = useSearchHistory ? 
+        '🧠 Analyzing search query and fetching real-time content...' : 
+        '📋 Analyzing user preferences...';
+    container.innerHTML = `<div class="item">${analysisText} <span class="loading"></span></div>`;
+    
+    try {
+        let url = `/recommendations/${userId}?limit=${limit}`;
+        if (useSearchHistory) {
+            url += '&search_based=true';
+            if (currentSearchQuery) {
+                url += `&query=${encodeURIComponent(currentSearchQuery)}`;
+            }
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!Array.isArray(data) || data.length === 0) {
+            container.innerHTML = '<div class="item">No recommendations available. Try loading sample data first or enter a search query above.</div>';
+        } else {
+            container.innerHTML = data.map((item, index) => {
+                const sourceIcon = item.source === 'personalized' ? '🎯' : 
+                                 item.source === 'real-time' ? '🌐' : 
+                                 item.source === 'keyword-based' ? '🔍' : 
+                                 item.source === 'intent-learning' ? '🧠' :
+                                 item.source === 'intent-recommendation' ? '💡' :
+                                 item.source === 'intent-shopping' ? '🛒' :
+                                 item.source === 'intent-trending' ? '🔥' :
+                                 item.source === 'intent-research' ? '📊' : '📦';
+                
+                const urlSection = item.url ? 
+                    `<div style="margin-top: 8px; font-size: 0.8rem;">
+                        <a href="${item.url}" target="_blank" style="color: #64b5f6; text-decoration: none;">
+                            🔗 Visit ${item.source_name || 'Source'}
+                        </a>
+                    </div>` : '';
+                
+                return `<div class="item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>${sourceIcon} #${index + 1} ${item.title || 'Untitled'}</strong>
+                        <span style="background: rgba(100,181,246,0.2); padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">${item.category || 'General'}</span>
+                    </div>
+                    <div style="margin-top: 8px; opacity: 0.8;">${item.description || 'No description available'}</div>
+                    ${item.search_relevance_score ? `<div style="margin-top: 8px; font-size: 0.8rem; color: #4caf50;">🎯 AI Match: ${(item.search_relevance_score * 100).toFixed(1)}%</div>` : ''}
+                    ${urlSection}
+                    ${item.source ? `<div style="margin-top: 8px; font-size: 0.8rem; color: #64b5f6;">📡 Source: ${item.source}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+    } catch (error) {
+        console.error('Recommendations error:', error);
+        container.innerHTML = `<div class="item" style="border-color: #f44336;">❌ Error: ${error.message}</div>`;
+    }
+}
+
+async function getTrending() {
+    const hours = document.getElementById('trendingHours').value;
+    const limit = document.getElementById('trendingLimit').value;
+    const container = document.getElementById('trending');
+    
+    if (!currentSearchQuery) {
+        container.innerHTML = '<div class="item" style="border-color: #ff6b35;">🔍 Please enter a search query above to get relevant trending content</div>';
+        return;
+    }
+    
+    container.innerHTML = `<div class="item">🌐 Fetching trending content for "${currentSearchQuery}"... <span class="loading"></span></div>`;
+    
+    try {
+        const url = `/trending?hours=${hours}&limit=${limit}&query=${encodeURIComponent(currentSearchQuery)}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!Array.isArray(data) || data.length === 0) {
+            container.innerHTML = `<div class="item">No trending items found for "${currentSearchQuery}" in the selected time period.</div>`;
+        } else {
+            container.innerHTML = data.map((item, index) => {
+                const sourceIcon = item.source === 'query-trending' ? '🔍' : 
+                                 item.source === 'real-time' ? '🌐' : 
+                                 item.source === 'database' ? '📦' : '🔥';
+                
+                const urlSection = item.url ? 
+                    `<div style="margin-top: 8px; font-size: 0.8rem;">
+                        <a href="${item.url}" target="_blank" style="color: #ff6b35; text-decoration: none; font-weight: bold;">
+                            🌐 Visit ${item.source_name || 'Source'}
+                        </a>
+                    </div>` : '';
+                
+                return `<div class="item">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <strong>${sourceIcon} #${index + 1} ${item.title}</strong>
+                        <span style="background: linear-gradient(45deg, #ff6b35, #f7931e); padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold;">🔥 ${item.trend_score || 'N/A'}</span>
+                    </div>
+                    <div style="margin-top: 8px; opacity: 0.8;">${item.description}</div>
+                    ${item.search_relevance_score ? `<div style="margin-top: 8px; font-size: 0.8rem; color: #ff6b35;">🎯 Query Match: ${(item.search_relevance_score * 100).toFixed(1)}%</div>` : ''}
+                    ${urlSection}
+                    <div style="margin-top: 8px; font-size: 0.8rem; color: #64b5f6;">📡 Source: ${item.source || 'unknown'} | 🔍 Query: "${currentSearchQuery}"</div>
+                </div>`;
+            }).join('');
+        }
+    } catch (error) {
+        console.error('Trending error:', error);
+        container.innerHTML = `<div class="item" style="border-color: #f44336;">❌ Error: ${error.message}</div>`;
+    }
+}
+
+function showMessage(containerId, message, type) {
+    const container = document.getElementById(containerId);
+    const className = type === 'success' ? 'success-message' : 'error-message';
+    container.innerHTML = `<div class="${className}">${message}</div>`;
+    setTimeout(() => container.innerHTML = '', 4000);
+}
+
+async function loadStatus() {
+    const statusBar = document.getElementById('statusBar');
+    try {
+        const response = await fetch('/status');
+        const data = await response.json();
+        statusBar.innerHTML = `
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;">
+                <div><strong>📊 Database:</strong> ${data.database}</div>
+                <div><strong>👤 Users:</strong> ${data.users_count || 0}</div>
+                <div><strong>📦 Items:</strong> ${data.items_count || 0}</div>
+                <div><strong>📊 Interactions:</strong> ${data.interactions_count || 0}</div>
+                <div><strong>🧠 AI Profiles:</strong> ${data.search_profiles || 0}</div>
+                <div><strong>🌐 Real-time:</strong> ${data.real_time_enabled ? '✅ Enabled' : '❌ Disabled'}</div>
+            </div>
+        `;
+    } catch (error) {
+        statusBar.innerHTML = '<div style="color: #f44336;">⚠️ Unable to load status</div>';
+    }
+}
+
+async function loadSampleData() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = 'Loading... <span class="loading"></span>';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/sample-data', { method: 'POST' });
+        
+        if (response.ok) {
+            const statusBar = document.getElementById('statusBar');
+            statusBar.innerHTML = '<div class="success-message">🎉 Enhanced sample data loaded! Try dynamic search above!</div>';
+            setTimeout(loadStatus, 1000);
+        } else {
+            throw new Error('Failed to load sample data');
+        }
+    } catch (error) {
+        const statusBar = document.getElementById('statusBar');
+        statusBar.innerHTML = '<div style="color: #f44336;">⚠️ Error loading sample data</div>';
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Auto-load status on page load
+window.onload = loadStatus;
+
+// Hide suggestions when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('#dynamicSearch') && !event.target.closest('#searchSuggestions')) {
+        hideSearchSuggestions();
+    }
+});
+</script>
+{% endblock %}
